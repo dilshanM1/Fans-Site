@@ -296,7 +296,7 @@ footer .dev:not([href]){pointer-events:none}
 /* never let long Sinhala words push text outside the banner / cards */
 .slide .txt{min-width:0;width:100%}
 .slide h1,.slide p,.card h3,.mcat,.modal h2,.desc,.rcard b{overflow-wrap:anywhere}
-.modal{overflow-x:hidden}
+.modal{overflow-x:clip}
 .mcat{display:none}
 .slide .media{position:absolute;inset:0}
 .slide .phbg{display:none}
@@ -353,6 +353,12 @@ footer .dev:not([href]){pointer-events:none}
   .card h3{font-size:17px}
   .phtxt{font-size:38px}
 }
+
+/* view counters */
+.vstat{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.05);font-weight:600;font-size:14px;color:var(--muted);white-space:nowrap}
+.vstat b{font-family:var(--font-head);font-size:24px;letter-spacing:1.5px;line-height:1;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cmeta .r{display:flex;gap:12px;align-items:center}
+.vw i,.tm i,.mmeta i{font-style:normal}
 </style>
 </head>
 <body>
@@ -395,6 +401,7 @@ footer .dev:not([href]){pointer-events:none}
   <div class="wrap">
     <img class="fl" data-logo="f" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="Fans">
     <p>© <span id="yr"></span> Fans.<br>All posts are shared from public social-media pages and remain the property of their owners.</p>
+    <div class="vstat hidden" id="vstat" title="Total visits to this site">👁 <b id="siteViews">0</b> <span>total views</span></div>
     <a class="dev" id="devLink" href="#" target="_blank" rel="noopener" aria-label="Kitaas Solutions">
       <small>Developed &amp; maintained by</small>
       <img data-logo="k" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="Kitaas Solutions">
@@ -422,7 +429,7 @@ const FIREBASE_CONFIG = {
 };
 /* ===================================================================== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot, query, orderBy, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, query, orderBy, addDoc, doc, updateDoc, deleteDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 const FB_READY = !/PASTE_/.test(FIREBASE_CONFIG.apiKey + FIREBASE_CONFIG.projectId);
 const sortPosts = l => l.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.created - a.created);
 
@@ -547,6 +554,33 @@ let heroList = [], heroIdx = 0, heroTimer = null;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const canHover = matchMedia('(hover:hover)').matches;
 
+/* ---------- view counters ---------- */
+let DB = null, SITE_VIEWS = null, shownSite = 0, lastSig = '';
+const nf = n => (n || 0).toLocaleString('en-US');
+const nc = n => { n = n || 0; return n >= 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M' : n >= 1e4 ? Math.round(n / 1e3) + 'K' : n >= 1e3 ? (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K' : String(n); };
+const noCount = () => { try { return localStorage.getItem('fans_noc') === '1'; } catch (e) { return false; } };   // admin's own visits are not counted
+function paintViews() {
+  document.querySelectorAll('[data-v]').forEach(el => { const p = POSTS.find(x => x.id === el.dataset.v); if (p) { el.textContent = nc(p.views); if (el.dataset.w && el.nextElementSibling) el.nextElementSibling.textContent = p.views === 1 ? ' view' : ' views'; } });
+  if (SITE_VIEWS !== null) {
+    $('vstat').classList.remove('hidden');
+    const el = $('siteViews'), to = SITE_VIEWS, from = shownSite, t0 = performance.now(); shownSite = to;
+    if (reduce || from === to) { el.textContent = nf(to); return; }
+    (function step(t) { const k = Math.min(1, (t - t0) / 900); el.textContent = nf(Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(step); })(t0);
+  }
+}
+/* a post counts once per browser every 6 hours */
+function countPostView(id) {
+  if (!DB || noCount()) return;
+  try { const k = 'fans_v_' + id, t = +localStorage.getItem(k) || 0; if (Date.now() - t < 6 * 3600e3) return; localStorage.setItem(k, String(Date.now())); } catch (e) {}
+  updateDoc(doc(DB, 'posts', id), { views: increment(1) }).catch(() => {});
+}
+/* the whole site counts once per browser session */
+function countSiteView() {
+  if (!DB || noCount()) return;
+  try { if (sessionStorage.getItem('fans_sv')) return; sessionStorage.setItem('fans_sv', '1'); } catch (e) {}
+  setDoc(doc(DB, 'stats', 'site'), { views: increment(1) }, { merge: true }).catch(() => {});
+}
+
 /* ---------- boot ---------- */
 (function boot() {
   const half = SITE.tickerText.repeat(3);
@@ -562,9 +596,15 @@ function startData() {
   if (!FB_READY) return fail('SETUP NEEDED', 'Open index.html in a text editor and paste your Firebase config at the top (see README).');
   let db;
   try { db = getFirestore(initializeApp(FIREBASE_CONFIG)); } catch (e) { return fail('OOPS!', e.message); }
+  DB = db; countSiteView();
+  onSnapshot(doc(db, 'stats', 'site'), s => { SITE_VIEWS = s.exists() ? (s.data().views || 0) : 0; paintViews(); }, () => {});
   onSnapshot(query(collection(db, 'posts'), orderBy('created', 'desc')), snap => {
     POSTS = sortPosts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    buildCats(); refresh();
+    /* only a view number changed? then just update the numbers - no re-draw, no flicker */
+    const sig = POSTS.map(p => [p.id, p.updated || 0, p.created || 0, p.pinned ? 1 : 0].join('|')).join('~');
+    if (!firstSnap && sig === lastSig) { paintViews(); return; }
+    lastSig = sig;
+    buildCats(); refresh(); paintViews();
     if (firstSnap) { firstSnap = false; openFromHash(); }
   }, err => fail('OOPS!', err.code === 'permission-denied' ? 'Firestore rules are blocking reads. Publish the rules from the README.' : err.message));
 }
@@ -621,7 +661,7 @@ function renderHero() {
     return `<div class="slide" data-i="${i}" data-id="${esc(p.id)}">${burstSvg()}<div class="media"><span class="phbg"><b class="phtxt">${esc((p.category || 'FANS').toUpperCase())}</b></span>${t ? `<img class="bg" decoding="async" src="${esc(t)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}</div>
       <div class="txt"><span class="pill">${p.pinned ? '📌 HOT · ' : '★ '}${esc(p.category)}</span>
       <h1>${esc(p.title)}</h1>${p.desc ? `<p>${esc(p.desc)}</p>` : '<p></p>'}
-      <div class="row"><span class="btn">VIEW POST →</span><span class="tm">${timeAgo(p.created)}${(p.items || []).length > 1 ? ' · ' + p.items.length + ' items' : ''}</span></div></div></div>`;
+      <div class="row"><span class="btn">VIEW POST →</span><span class="tm">${timeAgo(p.created)} · 👁 <i data-v="${esc(p.id)}">${nc(p.views)}</i>${(p.items || []).length > 1 ? ' · ' + p.items.length + ' items' : ''}</span></div></div></div>`;
   }).join('') + (heroList.length > 1 ? `
     <div class="hdots" id="hdots">${heroList.map((_, i) => `<button data-i="${i}" aria-label="Slide ${i + 1}"><i></i></button>`).join('')}</div>
     <div class="hnav"><button class="hbtn" id="hprev" aria-label="Previous">‹</button><span class="hcount" id="hcount"></span><button class="hbtn" id="hnext" aria-label="Next">›</button></div>` : '');
@@ -665,7 +705,7 @@ function renderGrid() {
   const list = all;   // show EVERY post in the grid (banner is only a highlight)
   $('grid').innerHTML = list.slice(0, shown).map((p, i) => `
     <div class="cell" style="--d:${(i % 6) * 0.07}s"><article class="card" data-id="${esc(p.id)}" tabindex="0">${thumbHtml(p)}
-      <div class="cbody"><span class="pill mcat">${esc(p.category)}</span><h3>${esc(p.title)}</h3><div class="cmeta"><span>🕒 ${timeAgo(p.created)}</span><span>${(p.items || []).length > 1 ? '🖼 ' + p.items.length : ''}</span></div></div></article></div>`).join('');
+      <div class="cbody"><span class="pill mcat">${esc(p.category)}</span><h3>${esc(p.title)}</h3><div class="cmeta"><span>🕒 ${timeAgo(p.created)}</span><span class="r"><span class="vw">👁 <i data-v="${esc(p.id)}">${nc(p.views)}</i></span>${(p.items || []).length > 1 ? '<span>🖼 ' + p.items.length + '</span>' : ''}</span></div></div></article></div>`).join('');
   $('more').classList.toggle('hidden', list.length <= shown);
   $('secTitle').classList.toggle('hidden', !list.length);
   $('secName').textContent = term ? 'SEARCH RESULTS' : (cat === 'All' ? 'ALL POSTS' : cat.toUpperCase());
@@ -777,7 +817,7 @@ function openPost(id, noHash) {
     <div class="mtop"><span class="pill">${p.pinned ? '📌 ' : '★ '}${esc(p.category)}</span><span class="sp"></span>
       <button class="cbtn nv" id="mprev" aria-label="Newer">‹</button><button class="cbtn nv" id="mnext" aria-label="Older">›</button><button class="cbtn" id="xBtn" aria-label="Close">✕</button></div>
     <h2>${esc(p.title)}</h2>
-    <div class="mmeta">🕒 ${new Date(p.created * 1000).toLocaleString()}</div>
+    <div class="mmeta">🕒 ${new Date(p.created * 1000).toLocaleString()} · 👁 <i data-v="${esc(p.id)}" data-w="1">${nc(p.views)}</i><span class="vl"> ${p.views === 1 ? 'view' : 'views'}</span></div>
     ${p.desc ? `<div class="desc">${esc(p.desc)}</div>` : ''}
     <div class="embeds">${(p.items || []).map(renderEmbed).join('')}</div>
     <div class="share"><button class="btn sm ghost" id="copyBtn">🔗 Copy link</button>
@@ -791,6 +831,7 @@ function openPost(id, noHash) {
   $('modal').querySelectorAll('.rcard').forEach(el => el.onclick = () => openPost(el.dataset.id));
   $('overlay').classList.add('open'); $('overlay').scrollTop = 0; document.body.style.overflow = 'hidden';
   document.title = p.title + ' — Fans';
+  countPostView(id);
   if (!noHash && location.hash !== '#p=' + p.id) history.pushState(null, '', '#p=' + p.id);
 }
 function closePost() {
