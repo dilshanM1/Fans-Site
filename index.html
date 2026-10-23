@@ -9,15 +9,17 @@
 <link rel="icon" id="fav" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Noto+Sans+Sinhala:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Noto+Sans+Sinhala:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Abhaya+Libre:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --red:#e5261b;--orange:#f7941d;--yellow:#ffd21f;--deep:#8f1d12;
   --bg:#0e0504;--card:#1b0b09;--text:#fff3e4;--muted:#c4a597;--line:rgba(255,200,150,.15);
   --grad:linear-gradient(90deg,#e5261b,#f7941d,#ffd21f);
   --grad2:linear-gradient(135deg,#e5261b,#f7941d);
-  --font-head:'Bangers','Noto Sans Sinhala',system-ui,sans-serif;
-  --font-body:'Poppins','Noto Sans Sinhala',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  /* Sinhala letters automatically use --font-si, English letters use Poppins / Bangers */
+  --font-si:'Abhaya Libre','Noto Sans Sinhala';
+  --font-head:'Bangers',var(--font-si),system-ui,sans-serif;
+  --font-body:'Poppins',var(--font-si),system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
 }
 *{box-sizing:border-box}
 html{background:var(--bg);scroll-behavior:smooth}
@@ -161,7 +163,7 @@ textarea.in{resize:vertical;min-height:92px}
 .slide.on .txt>:nth-child(2){transition-delay:.15s}.slide.on .txt>:nth-child(3){transition-delay:.3s}.slide.on .txt>:nth-child(4){transition-delay:.45s}
 .pill{display:inline-flex;align-items:center;gap:6px;background:var(--grad2);color:#fff;font-family:var(--font-head);letter-spacing:1.5px;font-size:15px;padding:2px 14px;border-radius:999px;box-shadow:0 6px 20px rgba(229,38,27,.45)}
 .slide h1{font-size:clamp(26px,4.2vw,52px);line-height:1.1;margin:14px 0 10px;font-weight:700;text-shadow:0 4px 24px rgba(0,0,0,.6)}
-.slide p{margin:0 0 18px;color:#ffe6d0;max-width:620px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.slide p{white-space:pre-line;margin:0 0 18px;color:#ffe6d0;max-width:620px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .slide .row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .slide .tm{font-size:13px;color:#ffd9b8;font-weight:600}
 .hnav{position:absolute;z-index:6;right:22px;bottom:24px;display:flex;align-items:center;gap:10px}
@@ -241,7 +243,7 @@ textarea.in{resize:vertical;min-height:92px}
 .mtop{position:sticky;top:0;z-index:5;margin:calc(-1*clamp(16px,3vw,40px)) calc(-1*clamp(14px,3.5vw,48px)) 6px;padding:12px clamp(14px,3.5vw,48px);background:rgba(21,8,6,.9);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .modal h2{font-size:clamp(22px,3.2vw,36px);line-height:1.3;margin:12px 0 6px}
 .mmeta{font-size:12px;color:var(--muted);font-weight:600}
-.desc{white-space:pre-wrap;margin:14px 0 20px;overflow-wrap:anywhere;color:#ffe9d6}
+.desc{white-space:pre-wrap;tab-size:4;margin:14px 0 20px;overflow-wrap:anywhere;color:#ffe9d6;line-height:1.8;font-size:clamp(15px,1.3vw,18px)}
 .embeds{display:flex;flex-direction:column;gap:18px;margin-top:16px}
 .embed iframe{max-width:min(100%,750px)}
 .embed .yt{max-width:100%}
@@ -439,7 +441,10 @@ function renderEmbed(item) {
   const src = isData ? '' : `<a class="src" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Open original ↗</a>`;
   let inner = '';
   switch (t.type) {
-    case 'image': return `<div class="embed pic"><img src="${esc(url)}" data-src="${esc(url)}" alt="" decoding="async" referrerpolicy="no-referrer" onload="this.dataset.ok=1" onerror="imgFail(this)"></div>`;
+    case 'image': {
+      const im = `<img src="${esc(url)}" data-src="${esc(url)}" alt="" decoding="async" referrerpolicy="no-referrer" onload="this.dataset.ok=1" onerror="imgFail(this)">`;
+      return `<div class="embed pic">${item.link && /^https?:\/\//i.test(item.link) ? `<a href="${esc(item.link)}" target="_blank" rel="noopener noreferrer">${im}</a>` : im}</div>`;
+    }
     case 'video': inner = `<video src="${esc(url)}" controls playsinline preload="metadata"></video>`; break;
     case 'youtube': inner = `<iframe class="yt" src="https://www.youtube-nocookie.com/embed/${esc(t.id)}" allowfullscreen loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture"></iframe>`; break;
     case 'fbpost': inner = `<iframe src="https://www.facebook.com/plugins/post.php?href=${eu(fbHref(url))}&show_text=true&width=750" style="height:640px" scrolling="yes" frameborder="0" allowfullscreen allow="encrypted-media; picture-in-picture; web-share" loading="lazy"></iframe>`; break;
@@ -712,7 +717,7 @@ function openPost(id, noHash) {
     <h2>${esc(p.title)}</h2>
     <div class="mmeta">🕒 ${new Date(p.created * 1000).toLocaleString()}</div>
     ${p.desc ? `<div class="desc">${esc(p.desc)}</div>` : ''}
-    <div class="embeds">${(() => { const its = p.items || [], isImg = it => it.kind === 'image' || parseItem(it.url).type === 'image'; return [...its.filter(isImg), ...its.filter(it => !isImg(it))].map(renderEmbed).join(''); })()}</div>
+    <div class="embeds">${(p.items || []).map(renderEmbed).join('')}</div>
     <div class="share"><button class="btn sm ghost" id="copyBtn">🔗 Copy link</button>
       <a class="btn sm ghost" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(p.title + ' ' + url)}">WhatsApp</a>
       <a class="btn sm ghost" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}">Facebook</a></div>
