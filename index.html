@@ -360,6 +360,9 @@ footer .dev:not([href]){pointer-events:none}
 .cmeta .r{display:flex;gap:12px;align-items:center}
 .vw i,.tm i,.mmeta i{font-style:normal}
 </style>
+
+<script data-cfasync="false" src="https://afders.org/1/fea23c9e73f963d62e8f7e40038abdda"></script>
+
 </head>
 <body>
 <div class="progress" id="prog"></div>
@@ -693,6 +696,8 @@ function goHero(i) {
   hero.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; hero.classList.add('paused'); }, { passive: true });
   hero.addEventListener('touchend', e => { hero.classList.remove('paused'); if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) goHero(heroIdx + (dx < 0 ? 1 : -1)); x0 = null; });
 })();
+
+
 
 /* ---------- grid ---------- */
 function thumbHtml(p) {
