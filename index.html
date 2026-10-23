@@ -201,7 +201,7 @@ textarea.in{resize:vertical;min-height:92px}
 @media(max-width:560px){.grid{grid-template-columns:repeat(2,1fr);gap:10px}.card h3{font-size:14px}.cbody{padding:10px 11px 12px}.phtxt{font-size:26px}.tag{left:8px;top:8px}.pill{font-size:12px;padding:1px 10px}}
 @media(max-width:340px){.grid{grid-template-columns:1fr}}
 .cell{opacity:0;transform:translateY(34px) scale(.97);transition:opacity .7s cubic-bezier(.2,.7,.2,1) var(--d,0s),transform .7s cubic-bezier(.2,.7,.2,1) var(--d,0s)}
-.cell.in{opacity:1;transform:none}
+.cell.vis{opacity:1;transform:none}
 .card{position:relative;height:100%;border-radius:22px;background:linear-gradient(165deg,rgba(255,255,255,.09),rgba(255,255,255,.025));border:1px solid var(--line);overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .18s ease-out,box-shadow .3s;will-change:transform}
 .card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:2px;background:var(--grad);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);mask-composite:exclude;opacity:0;transition:opacity .3s;z-index:4;pointer-events:none}
 .card:hover{box-shadow:0 26px 60px rgba(0,0,0,.55),0 0 40px rgba(229,38,27,.25)}
@@ -291,6 +291,68 @@ footer .dev:not([href]){pointer-events:none}
 .embed.pic img{min-height:0;background:rgba(255,255,255,.05)}
 .embed.pic img:not([data-ok]){min-height:220px;object-fit:contain}
 .imgfail{display:block;width:100%;padding:34px 14px;text-align:center;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:13px;font-weight:600;text-decoration:none;background:rgba(255,255,255,.04)}
+
+/* ===================== PHONE / TABLET LAYOUT ===================== */
+/* never let long Sinhala words push text outside the banner / cards */
+.slide .txt{min-width:0;width:100%}
+.slide h1,.slide p,.card h3,.mcat,.modal h2,.desc,.rcard b{overflow-wrap:anywhere}
+.modal{overflow-x:hidden}
+.mcat{display:none}
+.slide .media{position:absolute;inset:0}
+.slide .phbg{display:none}
+
+@media(max-width:760px){
+  /* --- slim header: logo + search on ONE row --- */
+  .nav-row{flex-wrap:nowrap;gap:10px;padding-top:6px;padding-bottom:6px}
+  .brand img{height:40px}
+  .search{order:0;flex:1 1 0;min-width:0;max-width:none;margin:0;position:static}
+  .sinner{height:42px;padding:0 10px 0 12px;gap:8px}
+  .sinner input{font-size:14px}
+  .sdrop{left:10px;right:10px;top:100%;margin-top:6px;max-height:70vh}
+
+  /* --- banner: picture on top, text BELOW it (nothing covers the picture) --- */
+  .hero{display:grid;height:auto;min-height:260px;margin-top:14px;border-radius:20px;background:#150806}
+  .slide{position:relative;inset:auto;grid-area:1/1;flex-direction:column;align-items:stretch;background:none}
+  .slide::after,.burst,.hero::before{display:none}
+  .slide .media{position:relative;inset:auto;width:100%;aspect-ratio:4/3;flex-shrink:0;overflow:hidden}
+  .slide .phbg{display:flex;position:absolute;inset:0;align-items:center;justify-content:center;background:radial-gradient(rgba(255,255,255,.3) 1.6px,transparent 2px) 0 0/12px 12px,linear-gradient(135deg,#8f1d12,#e5261b 45%,#f7941d 80%,#ffd21f)}
+  .slide .phbg .phtxt{font-size:38px}
+  .slide .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#1d0b08;transform:none;transition:none}
+  .slide .txt{padding:14px 16px 40px;max-width:none;background:linear-gradient(180deg,rgba(229,38,27,.16),transparent 70%)}
+  .slide h1{font-size:clamp(19px,5.6vw,26px);line-height:1.4;margin:10px 0 8px}
+  .slide p{font-size:14px;line-height:1.65;-webkit-line-clamp:3;margin-bottom:12px}
+  .slide .row .btn{padding:7px 18px;font-size:16px}
+  .hnav{top:10px;bottom:auto;right:10px}.hbtn{width:38px;height:38px;background:rgba(14,5,4,.72)}.hcount{display:none}
+  .hdots{left:16px;bottom:16px}
+
+  /* --- categories: one swipeable row instead of 3 wrapped rows --- */
+  .browse{margin:20px 0 4px;gap:10px}
+  .cats{flex:1 1 100%;flex-wrap:nowrap;overflow-x:auto;margin:0 calc(-1*clamp(14px,3vw,48px));padding:2px clamp(14px,3vw,48px) 6px;scrollbar-width:none}
+  .cats::-webkit-scrollbar{display:none}
+  .cat{flex:0 0 auto;font-size:15px;padding:6px 14px}
+  .seg{margin-left:auto}
+  .sec-title{font-size:28px;margin:14px 0 12px}
+
+  /* --- cards: full picture visible, tags OUTSIDE the picture --- */
+  .grid{gap:16px}
+  .card{border-radius:18px;transform:none!important}
+  .thumb{aspect-ratio:4/3}
+  .thumb img{object-fit:contain;background:#1d0b08}
+  .thumb .shade{display:none}
+  .thumb .tag:not(.pinned){display:none}
+  .tag.pinned{right:8px;top:8px}
+  .pinbadge{font-size:12px;padding:0 8px;animation:none}
+  .play{width:40px;height:40px;right:10px;bottom:10px;animation:none}
+  .mcat{display:inline-flex;align-self:flex-start;font-size:12px;padding:1px 11px}
+  .cbody{padding:12px 14px 14px;gap:8px}
+  .card h3{font-size:16px;line-height:1.55;-webkit-line-clamp:3}
+  .phtxt{font-size:30px}
+}
+@media(max-width:560px){
+  .grid{grid-template-columns:1fr}
+  .card h3{font-size:17px}
+  .phtxt{font-size:38px}
+}
 </style>
 </head>
 <body>
@@ -556,7 +618,7 @@ function renderHero() {
   heroIdx = 0;
   hero.innerHTML = heroList.map((p, i) => {
     const t = thumbOf(p);
-    return `<div class="slide" data-i="${i}" data-id="${esc(p.id)}">${burstSvg()}${t ? `<img class="bg" decoding="async" src="${esc(t)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}
+    return `<div class="slide" data-i="${i}" data-id="${esc(p.id)}">${burstSvg()}<div class="media"><span class="phbg"><b class="phtxt">${esc((p.category || 'FANS').toUpperCase())}</b></span>${t ? `<img class="bg" decoding="async" src="${esc(t)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}</div>
       <div class="txt"><span class="pill">${p.pinned ? '📌 HOT · ' : '★ '}${esc(p.category)}</span>
       <h1>${esc(p.title)}</h1>${p.desc ? `<p>${esc(p.desc)}</p>` : '<p></p>'}
       <div class="row"><span class="btn">VIEW POST →</span><span class="tm">${timeAgo(p.created)}${(p.items || []).length > 1 ? ' · ' + p.items.length + ' items' : ''}</span></div></div></div>`;
@@ -603,7 +665,7 @@ function renderGrid() {
   const list = all;   // show EVERY post in the grid (banner is only a highlight)
   $('grid').innerHTML = list.slice(0, shown).map((p, i) => `
     <div class="cell" style="--d:${(i % 6) * 0.07}s"><article class="card" data-id="${esc(p.id)}" tabindex="0">${thumbHtml(p)}
-      <div class="cbody"><h3>${esc(p.title)}</h3><div class="cmeta"><span>🕒 ${timeAgo(p.created)}</span><span>${(p.items || []).length > 1 ? '🖼 ' + p.items.length : ''}</span></div></div></article></div>`).join('');
+      <div class="cbody"><span class="pill mcat">${esc(p.category)}</span><h3>${esc(p.title)}</h3><div class="cmeta"><span>🕒 ${timeAgo(p.created)}</span><span>${(p.items || []).length > 1 ? '🖼 ' + p.items.length : ''}</span></div></div></article></div>`).join('');
   $('more').classList.toggle('hidden', list.length <= shown);
   $('secTitle').classList.toggle('hidden', !list.length);
   $('secName').textContent = term ? 'SEARCH RESULTS' : (cat === 'All' ? 'ALL POSTS' : cat.toUpperCase());
@@ -615,9 +677,9 @@ function renderGrid() {
 }
 let io;
 function reveal() {
-  const cells = document.querySelectorAll('.cell:not(.in)');
-  if (!('IntersectionObserver' in window) || reduce) { cells.forEach(c => c.classList.add('in')); return; }
-  io = io || new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } }), { rootMargin: '0px 0px -40px 0px', threshold: .05 });
+  const cells = document.querySelectorAll('.cell:not(.vis)');
+  if (!('IntersectionObserver' in window) || reduce) { cells.forEach(c => c.classList.add('vis')); return; }
+  io = io || new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add('vis'); io.unobserve(en.target); } }), { rootMargin: '0px 0px -40px 0px', threshold: .05 });
   cells.forEach(c => io.observe(c));
 }
 /* 3D tilt */
