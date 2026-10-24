@@ -543,7 +543,7 @@ const SITE = {
   // Website of Kitaas Solutions (leave '' for a logo with no link)
   developerUrl: '',
   tickerText: '🔥 LATEST CELEB UPDATES  ★  EXCLUSIVE PHOTOS  ★  VIRAL VIDEOS  ★  HOT UPDATES  ★  ',
-  heroSlides: 5,        // how many posts rotate in the big banner
+  heroSlides: 5,        // MAX posts in the big banner (admin picks which ones with the 🎞 SLIDER button; keep same number in admin.html HERO_MAX)
   heroSeconds: 6.5,     // seconds per slide
   pageSize: 12,         // posts per "load more"
 };
@@ -712,7 +712,7 @@ function startData() {
   onSnapshot(query(collection(db, 'posts'), orderBy('created', 'desc')), snap => {
     POSTS = sortPosts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     /* only a view number changed? then just update the numbers - no re-draw, no flicker */
-    const sig = POSTS.map(p => [p.id, p.updated || 0, p.created || 0, p.pinned ? 1 : 0].join('|')).join('~');
+    const sig = POSTS.map(p => [p.id, p.updated || 0, p.created || 0, p.pinned ? 1 : 0, p.slider ? 1 : 0].join('|')).join('~');
     if (!firstSnap && sig === lastSig) { paintViews(); return; }
     lastSig = sig;
     buildCats(); refresh(); paintViews();
@@ -751,10 +751,15 @@ function burstSvg() {
 
 /* ---------- hero ---------- */
 let heroSig = '';
+/* posts chosen in admin (🎞 SLIDER) - if none chosen yet, fall back to the newest posts */
+function heroPicks() {
+  const chosen = POSTS.filter(p => p.slider);
+  return (chosen.length ? chosen : POSTS).slice(0, SITE.heroSlides);
+}
 function renderHero() {
   const hero = $('hero');
   const showHero = cat === 'All' && !term && POSTS.length > 0;
-  const sig = [showHero, POSTS.length ? 1 : 0, ...POSTS.slice(0, SITE.heroSlides).map(p => [p.id, p.title, p.category, p.pinned, (p.desc || '').length, (p.thumb || '').length, (p.items || []).length, (p.items && p.items[0] ? p.items[0].url : '')].join('|'))].join('~');
+  const sig = [showHero, POSTS.length ? 1 : 0, ...heroPicks().map(p => [p.id, p.title, p.category, p.pinned, (p.desc || '').length, (p.thumb || '').length, (p.items || []).length, (p.items && p.items[0] ? p.items[0].url : '')].join('|'))].join('~');
   if (sig === heroSig && hero.querySelector('.slide, .hero-empty')) return;
   heroSig = sig;
   clearInterval(heroTimer);
@@ -765,7 +770,7 @@ function renderHero() {
   }
   hero.classList.toggle('hidden', !showHero);
   if (!showHero) return;
-  heroList = POSTS.slice(0, SITE.heroSlides);
+  heroList = heroPicks();
   heroIdx = 0;
   hero.innerHTML = heroList.map((p, i) => {
     const t = thumbOf(p);
