@@ -534,7 +534,7 @@ const FIREBASE_CONFIG = {
 };
 /* ===================================================================== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot, query, orderBy, addDoc, doc, updateDoc, deleteDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getFirestore, getDoc, collection, onSnapshot, query, orderBy, addDoc, doc, updateDoc, deleteDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 const FB_READY = !/PASTE_/.test(FIREBASE_CONFIG.apiKey + FIREBASE_CONFIG.projectId);
 const sortPosts = l => l.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.created - a.created);
 
@@ -704,6 +704,10 @@ function startData() {
   let db;
   try { db = getFirestore(initializeApp(FIREBASE_CONFIG)); } catch (e) { return fail('OOPS!', e.message); }
   DB = db; countSiteView();
+  let adsDone = false;
+  const adsGo = cfg => { if (adsDone) return; adsDone = true; applyAds(cfg); initAds(); if (POSTS.length) renderGrid(); };
+  setTimeout(() => adsGo(null), 2500);
+  getDoc(doc(db, 'settings', 'ads')).then(x => adsGo(x.exists() ? x.data() : null)).catch(() => adsGo(null));
   onSnapshot(doc(db, 'stats', 'site'), s => { SITE_VIEWS = s.exists() ? (s.data().views || 0) : 0; paintViews(); }, () => {});
   onSnapshot(query(collection(db, 'posts'), orderBy('created', 'desc')), snap => {
     POSTS = sortPosts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -832,18 +836,21 @@ function reveal() {
 }
 /* ---------- ads ---------- */
 /* read the control panel */
-const AC = {}, AO = {};   // AC = pasted code per spot (empty when OFF) · AO = that spot's numbers
-const adsMaster = (() => {
-  const m = document.getElementById('ads-master');
-  if (m && m.dataset.on === 'false') return false;
-  if (/[?&]showads\b/.test(location.search)) return true;
-  return !noCount();     // you (logged in to the admin on this browser) never see ads → no accidental clicks on your own ads
-})();
-['popunder', 'socialBar', 'inFeed', 'betweenImages', 'postEnd', 'belowGridWide', 'belowGridBox'].forEach(k => {
-  const t = document.getElementById('ad-' + k);
-  AO[k] = t ? t.dataset : {};
-  AC[k] = (adsMaster && t && t.dataset.on !== 'false') ? t.innerHTML.trim() : '';
-});
+/* read the control panel + the on/off settings saved in the admin panel */
+const AC = {}, AO = {};
+const AD_KEYS = ['popunder', 'socialBar', 'inFeed', 'betweenImages', 'postEnd', 'belowGridWide', 'belowGridBox'];
+AD_KEYS.forEach(k => { AC[k] = ''; AO[k] = {}; });
+let adsMaster = false;
+function applyAds(remote) {
+  const m = document.getElementById('ads-master'), r0 = remote || {};
+  adsMaster = !(m && m.dataset.on === 'false') && r0.master !== false;
+  if (adsMaster && !/[?&]showads\b/.test(location.search) && noCount()) adsMaster = false;
+  AD_KEYS.forEach(k => {
+    const t = document.getElementById('ad-' + k), r = (r0.spots && r0.spots[k]) || {};
+    AO[k] = Object.assign({}, t ? t.dataset : {}, r.opts || {});
+    AC[k] = (adsMaster && t && t.dataset.on !== 'false' && r.on !== false) ? t.innerHTML.trim() : '';
+  });
+}
 const adsOn = () => adsMaster;
 function mountAd(host, code) {
   const num = k => { const m = code.match(new RegExp("['\"]?" + k + "['\"]?\\s*:\\s*(\\d+)")); return m ? +m[1] : 0; };
@@ -876,8 +883,9 @@ function adBox(code) {
   return wrap;
 }
 /* one-time: below-grid slot (wide banner on big screens, box on phones) + optional extra script */
-(function initAds() {
-  if (!adsMaster) return;
+let adsStarted = false;
+function initAds() {
+  if (adsStarted || !adsMaster) return; adsStarted = true;
   const code = innerWidth >= 560 ? (AC.belowGridWide || AC.belowGridBox) : AC.belowGridBox;
   if (code) $('adBelow').appendChild(adBox(code));
   /* Popunder + Social Bar are page-level scripts: scripts inserted as HTML don't run, so rebuild them */
@@ -886,7 +894,8 @@ function adBox(code) {
     t.content.querySelectorAll('script').forEach(o => { const n = document.createElement('script'); [...o.attributes].forEach(a => n.setAttribute(a.name, a.value)); n.text = o.text; document.body.appendChild(n); });
   };
   ['popunder', 'socialBar'].forEach(k => { if (AC[k]) setTimeout(() => addScripts(AC[k]), Math.max(0, +AO[k].delay || 0) * 1000); });
-})();
+}
+
 function placeFeedAd(listLen) {
   if (!adsOn() || !AC.inFeed || cat !== 'All' || term) return;
   const n = Math.min(shown, listLen); if (n < (+AO.inFeed.minPosts || 4)) return;
