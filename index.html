@@ -359,14 +359,115 @@ footer .dev:not([href]){pointer-events:none}
 .vstat b{font-family:var(--font-head);font-size:24px;letter-spacing:1.5px;line-height:1;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .cmeta .r{display:flex;gap:12px;align-items:center}
 .vw i,.tm i,.mmeta i{font-style:normal}
+
+/* ===================== ADS (quiet, same look as the site) ===================== */
+.ad{margin:26px auto;max-width:100%;text-align:center}
+.ad.hide{display:none}
+.adl{display:block;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);opacity:.65;margin-bottom:6px;font-weight:600}
+.adin{display:flex;justify-content:center;align-items:center;max-width:100%;overflow:hidden;border-radius:14px}
+.adin iframe{border:0;display:block;max-width:100%;background:transparent}
+.cell.adcell{grid-column:1/-1;opacity:1;transform:none}
+.adcell .ad{margin:0;padding:12px 14px 14px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(165deg,rgba(255,255,255,.07),rgba(255,255,255,.02))}
+.modal .ad{margin:24px auto 4px}
+.embeds .adslot{display:flex;justify-content:center}
+.embeds .adslot .ad{margin:4px auto;width:100%}
+.adslot:empty{display:none}
 </style>
-
-<script data-cfasync="false" src="https://afders.org/1/fea23c9e73f963d62e8f7e40038abdda"></script>
-
 </head>
 <body>
 <div class="progress" id="prog"></div>
 <div class="blobs"><i></i><i></i><i></i></div>
+<!-- ╔══════════════════════════════════════════════════════════════════════════╗
+     ║                         ADSTERRA  —  ADS CONTROL PANEL                   ║
+     ╠══════════════════════════════════════════════════════════════════════════╣
+     ║ For each ad spot below:                                                  ║
+     ║   • TURN ON / OFF  → change  data-on="true"  to  data-on="false"         ║
+     ║   • ADD THE CODE   → paste the Adsterra GET CODE snippet between the     ║
+     ║                      <template ...> and </template> tags                 ║
+     ║ An empty spot (no code) simply shows nothing. Master switch is first.    ║
+     ╚══════════════════════════════════════════════════════════════════════════╝ -->
+
+<!-- MASTER SWITCH: data-on="false" turns EVERY ad off at once -->
+<div id="ads-master" hidden data-on="true"></div>
+
+<!-- SPOT 1 · POPUNDER  (Adsterra unit: Popunder_1) — opens a new tab on a visitor's click, earns the most.
+     data-delay = seconds to wait after the page opens before it can fire -->
+<template id="ad-popunder" data-on="true" data-delay="4">
+<script data-cfasync="false" src="https://afders.org/1/fea23c9e73f963d62e8f7e40038abdda"></script>
+</template>
+
+<!-- SPOT 2 · SOCIAL BAR  (Adsterra unit: SocialBar_1) — small floating message.
+     data-delay = seconds to wait after the page opens before it appears -->
+<template id="ad-socialBar" data-on="true" data-delay="6">
+  <script data-cfasync="false" src="https://bicea.org/14/cc2dd051cb735d641be2ea4cf82a7c6a"></script>
+</template>
+
+<!-- SPOT 3 · HOME PAGE, BETWEEN POSTS  (Adsterra unit: Native Banner_1) — one framed card inside the post grid.
+     data-after = show it after this many posts · data-min-posts = only when there are at least this many posts -->
+<template id="ad-inFeed" data-on="true" data-after="6" data-min-posts="4">
+  <script async="async" data-cfasync="false" src="https://bicea.org/21/85132469a0dc6ff3725dbfdcc4c28ce4"></script>
+<div id="container-85132469a0dc6ff3725dbfdcc4c28ce4"></div>
+</template>
+
+<!-- SPOT 4 · INSIDE A POST, BETWEEN TWO PHOTOS  (Adsterra unit: Banner 300x250 or Native Banner_1)
+     data-after = after which photo the first ad goes (1 = between photo 1 and 2)
+     data-every = then repeat after every N more photos (0 = show only once)
+     data-max   = never more than this many ads inside one post -->
+<template id="ad-betweenImages" data-on="true" data-after="1" data-every="3" data-max="3">
+  <script>
+  atOptions = {
+    'key' : 'f9e4cabe6b52638452f0e9866b0fae8c',
+    'format' : 'iframe',
+    'height' : 250,
+    'width' : 300,
+    'params' : {}
+  };
+</script>
+<script src="https://bicea.org/22/f9e4cabe6b52638452f0e9866b0fae8c"></script>
+</template>
+
+<!-- SPOT 5 · END OF A POST, before the Share buttons  (Adsterra unit: Banner 300x250) -->
+<template id="ad-postEnd" data-on="true">
+  <script>
+  atOptions = {
+    'key' : 'f9e4cabe6b52638452f0e9866b0fae8c',
+    'format' : 'iframe',
+    'height' : 250,
+    'width' : 300,
+    'params' : {}
+  };
+</script>
+<script src="https://bicea.org/22/f9e4cabe6b52638452f0e9866b0fae8c"></script>
+</template>
+
+<!-- SPOT 6a · UNDER THE POST GRID on tablets / computers  (Adsterra unit: Banner 468x60) -->
+<template id="ad-belowGridWide" data-on="true">
+  <script>
+  atOptions = {
+    'key' : '9da70bf8bda30f17e6e75c5626988880',
+    'format' : 'iframe',
+    'height' : 60,
+    'width' : 468,
+    'params' : {}
+  };
+</script>
+<script src="https://bicea.org/22/9da70bf8bda30f17e6e75c5626988880"></script>
+</template>
+
+<!-- SPOT 6b · UNDER THE POST GRID on phones  (Adsterra unit: Banner 300x250) -->
+<template id="ad-belowGridBox" data-on="true">
+  <script>
+  atOptions = {
+    'key' : 'f9e4cabe6b52638452f0e9866b0fae8c',
+    'format' : 'iframe',
+    'height' : 250,
+    'width' : 300,
+    'params' : {}
+  };
+</script>
+<script src="https://bicea.org/22/f9e4cabe6b52638452f0e9866b0fae8c"></script>
+</template>
+
 <div class="ticker" aria-hidden="true"><div class="track" id="tick"></div></div>
 
 <header class="nav" id="nav">
@@ -397,6 +498,7 @@ footer .dev:not([href]){pointer-events:none}
   <h2 class="sec-title hidden" id="secTitle"><span id="secName">LATEST</span><small id="secCount"></small></h2>
   <div class="grid" id="grid"></div>
   <button class="btn more hidden" id="more">LOAD MORE ↓</button>
+  <div id="adBelow"></div>
   <div class="empty hidden" id="empty"><span id="emptyT">NO POSTS YET!</span><small id="emptyS">New posts will appear here soon.</small></div>
 </main>
 
@@ -445,6 +547,8 @@ const SITE = {
   heroSeconds: 6.5,     // seconds per slide
   pageSize: 12,         // posts per "load more"
 };
+
+/* Ads: all codes and on/off switches are in the ADS CONTROL PANEL at the top of <body> */
 /* ================================== */
 
 /* ---------- shared helpers ---------- */
@@ -697,8 +801,6 @@ function goHero(i) {
   hero.addEventListener('touchend', e => { hero.classList.remove('paused'); if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) goHero(heroIdx + (dx < 0 ? 1 : -1)); x0 = null; });
 })();
 
-
-
 /* ---------- grid ---------- */
 function thumbHtml(p) {
   const t = thumbOf(p), n = (p.items || []).length;
@@ -707,22 +809,11 @@ function thumbHtml(p) {
 }
 function renderGrid() {
   const all = filtered();
-  const list = all; 
-  
-  $('grid').innerHTML = list.slice(0, shown).map((p, i) => {
-    const postHTML = `
-      <div class="cell" style="--d:${(i % 6) * 0.07}s"><article class="card" data-id="${esc(p.id)}" tabindex="0">${thumbHtml(p)}
-        <div class="cbody"><span class="pill mcat">${esc(p.category)}</span><h3>${esc(p.title)}</h3><div class="cmeta"><span>🕒 ${timeAgo(p.created)}</span><span class="r"><span class="vw">👁 <i data-v="${esc(p.id)}">${nc(p.views)}</i></span>${(p.items || []).length > 1 ? '<span>🖼 ' + p.items.length + '</span>' : ''}</span></div></div></article></div>`;
-    
-    // Inject the ad container every 6 posts
-    const adHTML = ((i + 1) % 1 === 0) ? `
-      <div class="cell ad-cell" style="--d:0s">
-        <div id="container-85132469a0dc6ff3725dbfdcc4c28ce4"></div>
-      </div>` : '';
-
-    return postHTML + adHTML;
-  }).join('');
-  
+  const list = all;   // show EVERY post in the grid (banner is only a highlight)
+  $('grid').innerHTML = list.slice(0, shown).map((p, i) => `
+    <div class="cell" style="--d:${(i % 6) * 0.07}s"><article class="card" data-id="${esc(p.id)}" tabindex="0">${thumbHtml(p)}
+      <div class="cbody"><span class="pill mcat">${esc(p.category)}</span><h3>${esc(p.title)}</h3><div class="cmeta"><span>🕒 ${timeAgo(p.created)}</span><span class="r"><span class="vw">👁 <i data-v="${esc(p.id)}">${nc(p.views)}</i></span>${(p.items || []).length > 1 ? '<span>🖼 ' + p.items.length + '</span>' : ''}</span></div></div></article></div>`).join('');
+  placeFeedAd(list.length);
   $('more').classList.toggle('hidden', list.length <= shown);
   $('secTitle').classList.toggle('hidden', !list.length);
   $('secName').textContent = term ? 'SEARCH RESULTS' : (cat === 'All' ? 'ALL POSTS' : cat.toUpperCase());
@@ -738,6 +829,70 @@ function reveal() {
   if (!('IntersectionObserver' in window) || reduce) { cells.forEach(c => c.classList.add('vis')); return; }
   io = io || new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.add('vis'); io.unobserve(en.target); } }), { rootMargin: '0px 0px -40px 0px', threshold: .05 });
   cells.forEach(c => io.observe(c));
+}
+/* ---------- ads ---------- */
+/* read the control panel */
+const AC = {}, AO = {};   // AC = pasted code per spot (empty when OFF) · AO = that spot's numbers
+const adsMaster = (() => {
+  const m = document.getElementById('ads-master');
+  if (m && m.dataset.on === 'false') return false;
+  if (/[?&]showads\b/.test(location.search)) return true;
+  return !noCount();     // you (logged in to the admin on this browser) never see ads → no accidental clicks on your own ads
+})();
+['popunder', 'socialBar', 'inFeed', 'betweenImages', 'postEnd', 'belowGridWide', 'belowGridBox'].forEach(k => {
+  const t = document.getElementById('ad-' + k);
+  AO[k] = t ? t.dataset : {};
+  AC[k] = (adsMaster && t && t.dataset.on !== 'false') ? t.innerHTML.trim() : '';
+});
+const adsOn = () => adsMaster;
+function mountAd(host, code) {
+  const num = k => { const m = code.match(new RegExp("['\"]?" + k + "['\"]?\\s*:\\s*(\\d+)")); return m ? +m[1] : 0; };
+  const w = num('width'), h = num('height');
+  const f = document.createElement('iframe');
+  f.title = 'Advertisement'; f.setAttribute('scrolling', 'no'); f.setAttribute('frameborder', '0');
+  f.style.width = w ? w + 'px' : '100%'; f.style.height = (h || 120) + 'px';
+  f.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>html,body{margin:0;background:transparent;overflow:hidden}body{display:flex;justify-content:center}</style></head><body>' + code + '</body></html>';
+  const box = host.closest('.ad');
+  f.addEventListener('load', () => {
+    const d = f.contentDocument; if (!d) return;
+    const fit = () => { if (!h) { const x = d.documentElement.scrollHeight; if (x > 20) f.style.height = x + 'px'; } };
+    let tries = 0, t = setInterval(() => {                      // wait for the ad network to fill the slot
+      tries++; fit();
+      const filled = d.body && d.body.querySelector('iframe,img,a,ins,video');
+      if (filled && tries > 2) { clearInterval(t); setTimeout(fit, 800); }
+      if (tries > 14) { clearInterval(t); if (!filled && box) { box.classList.add('hide'); const sl = box.closest('.adcell,.adslot'); if (sl) sl.style.display = 'none'; } }   // nothing came (ad-blocker / no ad): no empty box
+    }, 500);
+  });
+  host.appendChild(f);
+}
+const adIO = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(en => {
+  if (en.isIntersecting) { adIO.unobserve(en.target); mountAd(en.target, en.target._code); }
+}), { rootMargin: '400px 0px' }) : null;
+function adBox(code) {
+  const wrap = document.createElement('div'); wrap.className = 'ad';
+  wrap.innerHTML = '<small class="adl">Sponsored</small><div class="adin"></div>';
+  const host = wrap.querySelector('.adin'); host._code = code;
+  if (adIO) adIO.observe(host); else mountAd(host, code);
+  return wrap;
+}
+/* one-time: below-grid slot (wide banner on big screens, box on phones) + optional extra script */
+(function initAds() {
+  if (!adsMaster) return;
+  const code = innerWidth >= 560 ? (AC.belowGridWide || AC.belowGridBox) : AC.belowGridBox;
+  if (code) $('adBelow').appendChild(adBox(code));
+  /* Popunder + Social Bar are page-level scripts: scripts inserted as HTML don't run, so rebuild them */
+  const addScripts = html => {
+    const t = document.createElement('template'); t.innerHTML = html;
+    t.content.querySelectorAll('script').forEach(o => { const n = document.createElement('script'); [...o.attributes].forEach(a => n.setAttribute(a.name, a.value)); n.text = o.text; document.body.appendChild(n); });
+  };
+  ['popunder', 'socialBar'].forEach(k => { if (AC[k]) setTimeout(() => addScripts(AC[k]), Math.max(0, +AO[k].delay || 0) * 1000); });
+})();
+function placeFeedAd(listLen) {
+  if (!adsOn() || !AC.inFeed || cat !== 'All' || term) return;
+  const n = Math.min(shown, listLen); if (n < (+AO.inFeed.minPosts || 4)) return;
+  const cells = $('grid').children, at = Math.min(+AO.inFeed.after || 6, n);
+  const cell = document.createElement('div'); cell.className = 'cell adcell vis';
+  cell.appendChild(adBox(AC.inFeed)); cells[at - 1].after(cell);
 }
 /* 3D tilt */
 if (canHover && !reduce) {
@@ -825,6 +980,17 @@ function scrollToGrid() { const t = $('browse').getBoundingClientRect().top + sc
 /* ---------- modal ---------- */
 function toast(m) { const t = $('toast'); t.textContent = m; t.className = 'toast show'; clearTimeout(toast.t); toast.t = setTimeout(() => t.className = 'toast', 2200); }
 let curId = null;
+/* SPOT 4: where ads go between the photos of one post */
+function embedsWithAds(items) {
+  const a = +AO.betweenImages.after || 1, ev = +AO.betweenImages.every || 0, mx = +AO.betweenImages.max || 3;
+  let used = 0;
+  return items.map((it, i) => {
+    const n = i + 1, last = n === items.length;
+    const hit = AC.betweenImages && !last && used < mx && (n === a || (ev > 0 && n > a && (n - a) % ev === 0));
+    if (hit) used++;
+    return renderEmbed(it) + (hit ? '<div class="adslot"></div>' : '');
+  }).join('');
+}
 function openPost(id, noHash) {
   const i = POSTS.findIndex(x => x.id === id); if (i < 0) return;
   const p = POSTS[i]; curId = id;
@@ -836,14 +1002,15 @@ function openPost(id, noHash) {
     <h2>${esc(p.title)}</h2>
     <div class="mmeta">🕒 ${new Date(p.created * 1000).toLocaleString()} · 👁 <i data-v="${esc(p.id)}" data-w="1">${nc(p.views)}</i><span class="vl"> ${p.views === 1 ? 'view' : 'views'}</span></div>
     ${p.desc ? `<div class="desc">${esc(p.desc)}</div>` : ''}
-    <div class="embeds">${(p.items || []).map(renderEmbed).join('')}</div>
-
-
-    
+    <div class="embeds">${embedsWithAds(p.items || [])}</div>
+    <div id="adPost"></div>
     <div class="share"><button class="btn sm ghost" id="copyBtn">🔗 Copy link</button>
       <a class="btn sm ghost" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(p.title + ' ' + url)}">WhatsApp</a>
       <a class="btn sm ghost" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}">Facebook</a></div>
     ${rel.length ? `<div class="related"><h4>MORE ${esc(p.category.toUpperCase())}</h4><div class="rgrid">${rel.map(r => `<div class="rcard" data-id="${esc(r.id)}">${thumbHtml(r).replace(/<span class="tag[\s\S]*$/, '</div>')}<b>${esc(r.title)}</b></div>`).join('')}</div></div>` : ''}`;
+  const bcode = AC.betweenImages || '';
+  $('modal').querySelectorAll('.adslot').forEach(el => el.appendChild(adBox(bcode)));   // SPOT 4: between photos
+  if (AC.postEnd) $('adPost').appendChild(adBox(AC.postEnd));                           // SPOT 5: end of the post
   $('xBtn').onclick = closePost;
   $('mprev').onclick = () => { if (i > 0) openPost(POSTS[i - 1].id); else toast('This is the newest post'); };
   $('mnext').onclick = () => { if (i < POSTS.length - 1) openPost(POSTS[i + 1].id); else toast('No older posts'); };
@@ -883,8 +1050,5 @@ addEventListener('popstate', openFromHash); addEventListener('hashchange', openF
 
 startData();
 </script>
-
-<script data-cfasync="false" src="https://bicea.org/14/cc2dd051cb735d641be2ea4cf82a7c6a"></script>
-
 </body>
 </html>
